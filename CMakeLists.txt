@@ -6,7 +6,7 @@ set(CMAKE_C_LINK_EXECUTABLE "<CMAKE_LINKER> <FLAGS> <CMAKE_C_LINK_FLAGS> <LINK_F
 
 add_subdirectory(boot)
 
-add_executable(bootloader main.c)
+add_executable(bootloader main.c screen.c intrinsics.c)
 target_compile_options(bootloader PRIVATE -m32 -fno-pie -g -ffreestanding)
 target_link_options(bootloader PRIVATE
         -nostdlib -nolibc -nodefaultlibs
