@@ -1,8 +1,11 @@
+ASMC=nasm
+CC=gcc
+
 
 entrypoint.bin: entry.asm
-	nasm $< -f bin -o $@
+	$(ASMC) $< -f bin -o $@
 
 all: entrypoint.bin
 
 clean:
-	rm *.bin *.o
+	rm *.bin *.o *.out
