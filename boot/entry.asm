@@ -5,6 +5,7 @@ org 0x07c00
 ; load next stage code
 ; enter protected mode
 
+cpu 386
 bits 16
 
 ; BIOS sets boot drive in 'dl'; store for later use
@@ -35,7 +36,7 @@ start:
 
 load_next_stage:
     mov bx, NEXT_STAGE_LOAD_ADDRESS ; bx -> destination
-    mov dh, 2             ; dh -> num sectors
+    mov dh, 5             ; dh -> num sectors
     mov dl, [BOOT_DRIVE]  ; dl -> disk
     call disk_load
     ret
