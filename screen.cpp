@@ -1,5 +1,6 @@
 #include <x86/io.h>
 #include <intrinsics.h>
+#include "printf.h"
 #include "screen.h"
 
 #define VGA_CTRL_REGISTER 0x3d4
@@ -72,6 +73,12 @@ pos_t screen_print(const char* str) {
 
     set_cursor(pos);
     return pos;
+}
+
+pos_t screen_print(int value) {
+    char buffer[20] = {0};
+    itoa(buffer, value);
+    return screen_print(buffer);
 }
 
 }

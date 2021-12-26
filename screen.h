@@ -22,5 +22,6 @@ struct pos_t {
 void screen_clear();
 pos_t screen_put(char character);
 pos_t screen_print(const char* str);
+pos_t screen_print(int value);
 
 }
