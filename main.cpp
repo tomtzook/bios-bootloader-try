@@ -24,6 +24,24 @@ static bool check_vendor_id_intel() {
     return 0 == strcmp(buffer, CPUID_VENDOR_INTEL);
 }
 
+static bool check_paging_support() {
+    return x86::paging::bit32::are_4m_page_tables_supported();
+}
+
+#define probe_check(function_to_call) \
+    if (!function_to_call()) {        \
+        vga::screen_print("failed probe check: " #function_to_call "\n"); \
+        return false;                                  \
+    }
+
+static bool probe_machine_support() {
+    probe_check(check_vendor_id_intel);
+    probe_check(check_paging_support);
+
+
+    return true;
+}
+
 static void print_selector(x86::segmentation::selector_t& selector) {
     vga::screen_print("index: ");
     vga::screen_print(selector.bits.index);
@@ -124,8 +142,8 @@ void main() { // implement sleep with TSC/by getting CPU speed and cycles
     vga::screen_clear();
     vga::screen_print("Hello World\n");
 
-    if (!check_vendor_id_intel()) {
-        vga::screen_print("Model is not intel\n");
+    if (!probe_machine_support()) {
+        vga::screen_print("Machine not supported\n");
         return;
     }
 
