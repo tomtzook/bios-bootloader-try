@@ -2,6 +2,7 @@
 #include <x86/cpuid.h>
 #include <x86/msr.h>
 #include <x86/cr.h>
+#include <x86/segmentation.h>
 #include <x86/paging/paging.h>
 #include <x86/paging/bit32.h>
 
@@ -21,6 +22,30 @@ static bool check_vendor_id_intel() {
     memcpy(buffer + 8, &cpuid.ecx, 4);
 
     return 0 == strcmp(buffer, CPUID_VENDOR_INTEL);
+}
+
+static void print_selector(x86::segmentation::selector_t& selector) {
+    vga::screen_print("index: ");
+    vga::screen_print(selector.bits.index);
+    vga::screen_print(", table: ");
+    vga::screen_print((int)selector.bits.table);
+    vga::screen_print(", rpl: ");
+    vga::screen_print(selector.bits.rpl);
+    vga::screen_print("\n");
+}
+
+static void probe_segment_selectors() {
+    auto gdtr = x86::read<x86::segmentation::gdtr_t>();
+    x86::segmentation::table_t gdt(gdtr);
+
+    auto cs_segment = gdt.segment<x86::segmentation::cs_t>();
+    vga::screen_print("cs segment: base=");
+    vga::screen_print(cs_segment.base_address());
+    vga::screen_print(", limit=");
+    vga::screen_print(cs_segment.limit());
+    vga::screen_print(", granularity=");
+    vga::screen_print(static_cast<int>(cs_segment.bits.granularity));
+    vga::screen_print("\n");
 }
 
 static void print_paging_info() {
@@ -95,7 +120,7 @@ physical_address_t to_physical(void* address) {
 }
 
 extern "C"
-void main() {
+void main() { // implement sleep with TSC/by getting CPU speed and cycles
     vga::screen_clear();
     vga::screen_print("Hello World\n");
 
@@ -104,9 +129,10 @@ void main() {
         return;
     }
 
+    probe_segment_selectors();
     print_paging_info();
-    setup_paging();
-    print_paging_info();
+    //setup_paging();
+    //print_paging_info();
 
     while (true);
 }
