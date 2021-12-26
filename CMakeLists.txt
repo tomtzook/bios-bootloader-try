@@ -10,8 +10,8 @@ add_subdirectory(arch)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(bootloader main.cpp screen.cpp printf.h)
-target_compile_options(bootloader PRIVATE -m32 -fno-pie -g -ffreestanding)
+add_executable(bootloader main.cpp screen.cpp printf.h page_table.cpp page_table.h)
+target_compile_options(bootloader PRIVATE -m32 -fno-pie -g -ffreestanding -fno-rtti -fno-exceptions)
 target_link_options(bootloader PRIVATE
         -nostdlib -Ttext 0x1000 -no-pie -m elf_i386
         ${CMAKE_CURRENT_BINARY_DIR}/boot/main_entry.o)
@@ -31,7 +31,7 @@ add_custom_target(image
 )
 
 add_custom_target(run-qemu
-        COMMAND qemu-system-i386 -drive format=raw,file=image.bin
+        COMMAND qemu-system-i386 -drive format=raw,file=image.bin -d int -no-reboot -no-shutdown
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         DEPENDS image
 )
@@ -42,7 +42,7 @@ add_custom_target(run-qemu
 # break *0x07c00 for bootloader start
 # break *0x1000 for second stage start
 add_custom_target(run-qemu-debug
-        COMMAND qemu-system-i386 -drive format=raw,file=image.bin -s -S
+        COMMAND qemu-system-i386 -drive format=raw,file=image.bin -s -S -d int -no-reboot -no-shutdown
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         DEPENDS image
 )

@@ -36,7 +36,7 @@ start:
 
 load_next_stage:
     mov bx, NEXT_STAGE_LOAD_ADDRESS ; bx -> destination
-    mov dh, 10             ; dh -> num sectors
+    mov dh, 20             ; dh -> num sectors
     mov dl, [BOOT_DRIVE]  ; dl -> disk
     call disk_load
     ret

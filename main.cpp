@@ -7,8 +7,11 @@
 
 #include "screen.h"
 #include "printf.h"
+#include "page_table.h"
 
 #define CPUID_VENDOR_INTEL "GenuineIntel"
+
+static page_table_t page_table;
 
 static bool check_vendor_id_intel() {
     char buffer[12 + 1] = {0};
@@ -53,22 +56,42 @@ static void print_paging_info() {
     } else {
         vga::screen_print("32 BIT 4M Pages Not Supported\n");
     }
+}
 
+void setup_paging() {
+    setup_identity_page_table(page_table);
+
+    // load page table
+
+    auto cr3 = x86::read<x86::cr3_t>();
+    cr3.address(reinterpret_cast<physical_address_t>(&page_table));
+    x86::write(cr3);
+
+    auto cr4 = x86::read<x86::cr4_t>();
+    cr4.bits.page_size_extensions = true;
+    x86::write(cr4);
+
+    auto cr0 = x86::read<x86::cr0_t>();
+    cr0.bits.paging_enable = true;
+    x86::write(cr0);
+}
+
+physical_address_t to_physical(void* address) {
     // demonstrating translation in 32bit paging
-    /*x86::paging::bit32::linear_address_t addr{};
-    addr.raw = 0x1000;
+    x86::paging::bit32::linear_address_t addr{};
+    addr.raw = reinterpret_cast<uint32_t>(address);
 
     auto cr3 = x86::read<x86::cr3_t>();
     auto pde_address = (static_cast<physical_address_t>(cr3.bits.page_table_address) << x86::paging::page_bits_4k) |
-            (addr.big.directory << 2);
+                       (addr.big.directory << 2);
     auto pde = reinterpret_cast<const x86::paging::bit32::pde_t*>(pde_address);
     if (pde->is_big()) {
-        auto physical_address = pde->address() | (addr.big.offset);
+        return pde->address() | (addr.big.offset);
     } else {
         auto pte_address = pde->address() | (addr.small.table << 2);
         auto pte = reinterpret_cast<const x86::paging::bit32::pte_t*>(pte_address);
-        auto physical_address = pte->address() | (addr.small.offset);
-    }*/
+        return pte->address() | (addr.small.offset);
+    }
 }
 
 extern "C"
@@ -81,6 +104,8 @@ void main() {
         return;
     }
 
+    print_paging_info();
+    setup_paging();
     print_paging_info();
 
     while (true);
